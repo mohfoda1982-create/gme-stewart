@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GME Faculty Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy: #0a1628;
+    --deep: #112240;
+    --teal: #0d9488;
+    --teal-light: #14b8a6;
+    --gold: #f59e0b;
+    --cream: #fafaf8;
+    --gray: #64748b;
+    --border: #e2e8f0;
+    --red: #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--navy);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: 20px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .header h1 { font-family: 'Playfair Display', serif; font-size: 1.4rem; letter-spacing: -0.02em; }
+  .header-sub { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+  .month-nav { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .month-btn { background: rgba(255,255,255,0.1); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+  .month-btn:hover { background: rgba(255,255,255,0.2); }
+  .month-label { font-size: 1rem; font-weight: 600; flex: 1; text-align: center; }
+
+  /* TABS */
+  .tabs { display: flex; background: white; border-bottom: 1px solid var(--border); position: sticky; top: 97px; z-index: 99; }
+  .tab { flex: 1; padding: 12px 8px; text-align: center; font-size: 0.78rem; font-weight: 500; color: var(--gray); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+  /* CONTENT */
+  .content { padding: 16px; }
+
+  /* ADD ENTRY FORM */
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 14px; color: var(--navy); }
+
+  .form-row { margin-bottom: 12px; }
+  label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray); display: block; margin-bottom: 5px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--navy);
+    background: var(--cream);
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--teal); background: white; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover { background: var(--teal-light); }
+  .btn-danger { background: var(--red); color: white; margin-top: 8px; }
+  .btn-report { background: var(--navy); color: white; }
+  .btn-report:hover { background: var(--deep); }
+
+  /* ENTRIES LIST */
+  .entry-item {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .entry-left { flex: 1; }
+  .entry-date { font-size: 0.72rem; font-weight: 600; color: var(--teal); text-transform: uppercase; letter-spacing: 0.05em; }
+  .entry-activity { font-size: 0.88rem; font-weight: 500; margin-top: 2px; }
+  .entry-note { font-size: 0.78rem; color: var(--gray); margin-top: 3px; }
+  .entry-hours { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--navy); white-space: nowrap; }
+  .entry-del { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 1.1rem; padding: 2px 4px; }
+  .entry-del:hover { color: var(--red); }
+
+  /* CATEGORY BADGE */
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-top: 4px;
+  }
+  .badge-committee { background: #dbeafe; color: #1d4ed8; }
+  .badge-lecture { background: #dcfce7; color: #15803d; }
+  .badge-research { background: #fef3c7; color: #b45309; }
+  .badge-eval { background: #f3e8ff; color: #7c3aed; }
+  .badge-recruit { background: #ffe4e6; color: #be123c; }
+
+  /* SUMMARY */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .summary-box {
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .summary-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--teal); }
+  .summary-lbl { font-size: 0.7rem; font-weight: 500; color: var(--gray); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .cat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .cat-row:last-child { border-bottom: none; }
+  .cat-name { font-size: 0.85rem; font-weight: 500; }
+  .cat-hrs { font-weight: 600; color: var(--teal); }
+
+  /* REPORT */
+  .report-header { background: var(--navy); color: white; border-radius: 10px 10px 0 0; padding: 14px 16px; }
+  .report-body { background: white; border-radius: 0 0 10px 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { background: #f8fafc; padding: 9px 10px; text-align: left; font-size: 0.7rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+  td { padding: 9px 10px; border-bottom: 1px solid #f1f5f9; color: var(--navy); }
+  tr:last-child td { border-bottom: none; }
+  .total-row td { font-weight: 700; background: #f0fdfa; color: var(--teal); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .empty-text { font-size: 0.88rem; }
+
+  /* YEAR SUMMARY */
+  .year-month { background: white; border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .year-month-header { display: flex; justify-content: space-between; padding: 12px 14px; cursor: pointer; }
+  .year-month-name { font-weight: 600; }
+  .year-month-hrs { color: var(--teal); font-weight: 600; }
+  .year-month-body { display: none; padding: 0 14px 12px; border-top: 1px solid var(--border); }
+  .year-month-body.open { display: block; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: white; padding: 10px 20px; border-radius: 30px;
+    font-size: 0.85rem; font-weight: 500; z-index: 999;
+    animation: fadeup 0.3s ease, fadeout 0.4s ease 1.6s forwards;
+  }
+  @keyframes fadeup { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+  @keyframes fadeout { to { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>GME Faculty Tracker</h1>
+      <div class="header-sub">OB/GYN Residency Program</div>
+    </div>
+  </div>
+  <div class="month-nav">
+    <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button class="month-btn" onclick="changeMonth(1)">›</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('log')">Log Entry</div>
+  <div class="tab" onclick="showTab('entries')">Entries</div>
+  <div class="tab" onclick="showTab('report')">Report</div>
+  <div class="tab" onclick="showTab('year')">Year</div>
+</div>
+
+<div class="content">
+
+  <!-- LOG TAB -->
+  <div id="tab-log">
+    <div class="card">
+      <div class="card-title">Add GME Activity</div>
+      <div class="form-row">
+        <label>Date</label>
+        <input type="date" id="entryDate">
+      </div>
+      <div class="form-row">
+        <label>Activity Category</label>
+        <select id="entryCategory">
+          <option value="">Select category...</option>
+          <option value="committee">GME Committee (CCC, PEC) / Faculty Meetings</option>
+          <option value="lecture">GME Lecturing / Teaching Conferences</option>
+          <option value="research">GME Research / Scholarly Activity</option>
+          <option value="eval">Written Resident Evaluations</option>
+          <option value="recruit">GME Recruiting / Interviewing</option>
+        </select>
+      </div>
+      <div class="form-row row2">
+        <div>
+          <label>Hours</label>
+          <input type="number" id="entryHours" placeholder="0" min="0.5" max="24" step="0.5">
+        </div>
+        <div>
+          <label>Resident Name (opt)</label>
+          <input type="text" id="entryResident" placeholder="e.g. Dr. Smith">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Notes</label>
+        <input type="text" id="entryNote" placeholder="e.g. High risk meeting, research discussion...">
+      </div>
+      <button class="btn btn-primary" onclick="addEntry()">+ Add Entry</button>
+    </div>
+  </div>
+
+  <!-- ENTRIES TAB -->
+  <div id="tab-entries" style="display:none;">
+    <div id="entriesList"></div>
+  </div>
+
+  <!-- REPORT TAB -->
+  <div id="tab-report" style="display:none;">
+    <div style="margin-bottom:16px;">
+      <div class="summary-grid" id="summaryGrid"></div>
+    </div>
+    <div class="report-header">
+      <div style="font-size:0.75rem;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;">Monthly Report</div>
+      <div style="font-size:1.1rem;font-weight:600;margin-top:2px;" id="reportTitle"></div>
+    </div>
+    <div class="report-body">
+      <table id="reportTable">
+        <thead><tr><th>Date</th><th>Activity</th><th>Resident</th><th>Hours</th></tr></thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-report" onclick="copyReport()">📋 Copy Report Text</button>
+    </div>
+  </div>
+
+  <!-- YEAR TAB -->
+  <div id="tab-year" style="display:none;">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">Year-to-Date Summary</div>
+      <div id="yearSummary"></div>
+    </div>
+    <div id="yearMonths"></div>
+  </div>
+
+</div>
+
+<script>
+const CATEGORIES = {
+  committee: { label: 'GME Committee / Faculty Meetings', short: 'Committee', badge: 'badge-committee' },
+  lecture:   { label: 'GME Lecturing / Teaching Conferences', short: 'Lecture/Teaching', badge: 'badge-lecture' },
+  research:  { label: 'GME Research / Scholarly Activity', short: 'Research', badge: 'badge-research' },
+  eval:      { label: 'Written Resident Evaluations', short: 'Evaluations', badge: 'badge-eval' },
+  recruit:   { label: 'GME Recruiting / Interviewing', short: 'Recruiting', badge: 'badge-recruit' },
+};
+
+let currentYear, currentMonth;
+let data = {};
+
+function storageKey() { return 'gme_data_v2'; }
+
+function loadData() {
+  try { data = JSON.parse(localStorage.getItem(storageKey()) || '{}'); } catch(e) { data = {}; }
+}
+function saveData() {
+  localStorage.setItem(storageKey(), JSON.stringify(data));
+}
+
+function monthKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
+
+function getEntries(y, m) { return (data[monthKey(y,m)] || []); }
+
+function init() {
+  const now = new Date();
+  currentYear = now.getFullYear();
+  currentMonth = now.getMonth();
+  loadData();
+  document.getElementById('entryDate').value = now.toISOString().split('T')[0];
+  updateMonthLabel();
+  renderAll();
+}
+
+function updateMonthLabel() {
+  const d = new Date(currentYear, currentMonth, 1);
+  document.getElementById('monthLabel').textContent = d.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  updateMonthLabel();
+  renderAll();
+}
+
+function showTab(name) {
+  ['log','entries','report','year'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name ? '' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', ['log','entries','report','year'][i] === name);
+  });
+  if (name === 'entries') renderEntries();
+  if (name === 'report') renderReport();
+  if (name === 'year') renderYear();
+}
+
+function addEntry() {
+  const date = document.getElementById('entryDate').value;
+  const cat = document.getElementById('entryCategory').value;
+  const hours = parseFloat(document.getElementById('entryHours').value);
+  const resident = document.getElementById('entryResident').value.trim();
+  const note = document.getElementById('entryNote').value.trim();
+
+  if (!date || !cat || !hours || hours <= 0) {
+    showToast('Please fill date, category, and hours');
+    return;
+  }
+
+  const d = new Date(date + 'T12:00:00');
+  const y = d.getFullYear(), m = d.getMonth();
+  const key = monthKey(y, m);
+  if (!data[key]) data[key] = [];
+  data[key].push({ id: Date.now(), date, cat, hours, resident, note });
+  data[key].sort((a,b) => a.date.localeCompare(b.date));
+  saveData();
+
+  document.getElementById('entryCategory').value = '';
+  document.getElementById('entryHours').value = '';
+  document.getElementById('entryResident').value = '';
+  document.getElementById('entryNote').value = '';
+
+  showToast('Entry added ✓');
+}
+
+function deleteEntry(key, id) {
+  if (!confirm('Delete this entry?')) return;
+  data[key] = (data[key] || []).filter(e => e.id !== id);
+  saveData();
+  renderEntries();
+  showToast('Entry deleted');
+}
+
+function renderEntries() {
+  const entries = getEntries(currentYear, currentMonth);
+  const el = document.getElementById('entriesList');
+  if (!entries.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No entries this month.<br>Go to Log Entry to add activities.</div></div>`;
+    return;
+  }
+  const key = monthKey(currentYear, currentMonth);
+  el.innerHTML = entries.map(e => {
+    const cat = CATEGORIES[e.cat] || {};
+    const dateStr = new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<div class="entry-item">
+      <div class="entry-left">
+        <div class="entry-date">${dateStr}</div>
+        <div class="entry-activity">${cat.short || e.cat}</div>
+        ${e.resident ? `<div class="entry-note">👤 ${e.resident}</div>` : ''}
+        ${e.note ? `<div class="entry-note">${e.note}</div>` : ''}
+        <span class="badge ${cat.badge || ''}">${cat.short || e.cat}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="entry-hours">${e.hours}h</div>
+        <button class="entry-del" onclick="deleteEntry('${key}',${e.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderReport() {
+  const entries = getEntries(currentYear, currentMonth);
+  const monthName = new Date(currentYear, currentMonth, 1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  document.getElementById('reportTitle').textContent = monthName;
+
+  // Summary
+  const totals = {};
+  let grandTotal = 0;
+  entries.forEach(e => {
+    totals[e.cat] = (totals[e.cat]||0) + e.hours;
+    grandTotal += e.hours;
+  });
+
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="summary-box"><div class="summary-num">${grandTotal}</div><div class="summary-lbl">Total Hours</div></div>
+    <div class="summary-box"><div class="summary-num">${entries.length}</div><div class="summary-lbl">Activities</div></div>
+  `;
+
+  // Table
+  const tbody = document.getElementById('reportBody');
+  if (!entries.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">No entries</td></tr>';
+    return;
+  }
+
+  let rows = entries.map(e => {
+    const dateStr = new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const cat = CATEGORIES[e.cat] || {};
+    return `<tr><td>${dateStr}</td><td>${cat.short||e.cat}${e.note?' – '+e.note:''}</td><td>${e.resident||'—'}</td><td>${e.hours}h</td></tr>`;
+  });
+  rows.push(`<tr class="total-row"><td colspan="3">TOTAL</td><td>${grandTotal}h</td></tr>`);
+  tbody.innerHTML = rows.join('');
+}
+
+function renderYear() {
+  let yearTotal = 0;
+  const monthsWithData = [];
+
+  for (let m = 0; m < 12; m++) {
+    const entries = getEntries(currentYear, m);
+    if (entries.length) {
+      const hrs = entries.reduce((s,e)=>s+e.hours,0);
+      yearTotal += hrs;
+      monthsWithData.push({ m, entries, hrs });
+    }
+  }
+
+  document.getElementById('yearSummary').innerHTML = `
+    <div class="cat-row"><span class="cat-name">Total Hours ${currentYear}</span><span class="cat-hrs">${yearTotal}h</span></div>
+    <div class="cat-row"><span class="cat-name">Months with Activity</span><span class="cat-hrs">${monthsWithData.length}</span></div>
+  `;
+
+  if (!monthsWithData.length) {
+    document.getElementById('yearMonths').innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">No data for ${currentYear} yet.</div></div>`;
+    return;
+  }
+
+  document.getElementById('yearMonths').innerHTML = monthsWithData.map(({m, entries, hrs}) => {
+    const name = new Date(currentYear, m, 1).toLocaleDateString('en-US',{month:'long'});
+    const cats = {};
+    entries.forEach(e => cats[e.cat] = (cats[e.cat]||0)+e.hours);
+    const details = Object.entries(cats).map(([c,h]) => `<div class="cat-row"><span class="cat-name">${CATEGORIES[c]?.short||c}</span><span class="cat-hrs">${h}h</span></div>`).join('');
+    return `<div class="year-month">
+      <div class="year-month-header" onclick="toggleMonth(this)">
+        <span class="year-month-name">${name}</span>
+        <span class="year-month-hrs">${hrs}h ›</span>
+      </div>
+      <div class="year-month-body">${details}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMonth(el) {
+  el.nextElementSibling.classList.toggle('open');
+}
+
+function renderAll() { /* lazy */ }
+
+function copyReport() {
+  const entries = getEntries(currentYear, currentMonth);
+  const monthName = new Date(currentYear, currentMonth, 1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  let text = `GME FACULTY ACTIVITY REPORT\n${monthName}\nName: David Stewart MD\n\n`;
+  text += `DATE\t\tACTIVITY\t\t\t\tRESIDENT\t\tHOURS\n`;
+  text += '─'.repeat(70) + '\n';
+  let total = 0;
+  entries.forEach(e => {
+    const dateStr = new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const cat = CATEGORIES[e.cat]?.short || e.cat;
+    const note = e.note ? ` (${e.note})` : '';
+    text += `${dateStr}\t${cat}${note}\t${e.resident||'—'}\t${e.hours}h\n`;
+    total += e.hours;
+  });
+  text += '─'.repeat(70) + '\n';
+  text += `TOTAL HOURS: ${total}h`;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('Report copied to clipboard!'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Report copied!');
+  }
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2100);
+}
+
+
+
+init();
+
+</script>
+</body>
+</html>
